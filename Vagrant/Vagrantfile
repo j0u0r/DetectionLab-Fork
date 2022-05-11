@@ -5,7 +5,7 @@ Vagrant.configure("2") do |config|
     cfg.vm.box = "bento/ubuntu-20.04"
     # name of vm
     cfg.vm.hostname = "logger"
-    # script for linux
+    # script for linux (logger; not important so skipped)
     cfg.vm.provision :shell, path: "logger_bootstrap.sh"
     # ip info
     cfg.vm.network :private_network, ip: "192.168.56.105", gateway: "192.168.56.1", dns: "8.8.8.8"
@@ -58,6 +58,7 @@ Vagrant.configure("2") do |config|
     end
   end
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # domain controller 
 config.vm.define "dc" do |cfg|
     cfg.vm.box = "detectionlab/win2016"
@@ -76,8 +77,8 @@ config.vm.define "dc" do |cfg|
     cfg.winrm.retry_limit = 20
     # ip info
     cfg.vm.network :private_network, ip: "192.168.56.102", gateway: "192.168.56.1", dns: "8.8.8.8"
-    # powershell scripts that will run in the new vm
-    
+    # powershell scripts that will run in the new vm (will identify what is important as more is annotated)--------------------------------------------------------------------------
+    # important
     cfg.vm.provision "shell", path: "scripts/fix-second-network.ps1", privileged: true, args: "-ip 192.168.56.102 -dns 8.8.8.8 -gateway 192.168.56.1" 
     cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
     cfg.vm.provision "reload"
@@ -100,7 +101,7 @@ config.vm.define "dc" do |cfg|
     cfg.vm.provision "shell", inline: 'wevtutil el | Select-String -notmatch "Microsoft-Windows-LiveId" | Foreach-Object {wevtutil cl "$_"}', privileged: false
     cfg.vm.provision "shell", inline: "Set-SmbServerConfiguration -AuditSmb1Access $true -Force", privileged: false
     cfg.vm.provision "shell", inline: "Write-Host 'DC Provisioning Complete!'", privileged: false
-
+    # -----------------------------------------------------------------------------------------------------------------------------------------------------
     cfg.vm.provider "vmware_desktop" do |v, override|
       v.vmx["displayname"] = "dc.windomain.local"
       v.memory = 3072
