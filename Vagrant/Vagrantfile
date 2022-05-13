@@ -78,9 +78,11 @@ config.vm.define "dc" do |cfg|
     # ip info
     cfg.vm.network :private_network, ip: "192.168.56.102", gateway: "192.168.56.1", dns: "8.8.8.8"
     # powershell scripts that will run in the new vm (will identify what is important as more is annotated)--------------------------------------------------------------------------
-    # important
+    # important ; fix wifi (not so sure why), make ip static
     cfg.vm.provision "shell", path: "scripts/fix-second-network.ps1", privileged: true, args: "-ip 192.168.56.102 -dns 8.8.8.8 -gateway 192.168.56.1" 
+    # important x3 ; sets time to UTC, resets windows trial expiry, sets background, create/joins domain, sets auto-login
     cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
+    # restarts vm in case provision.ps1 did not run successfully
     cfg.vm.provision "reload"
     cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
     cfg.vm.provision "shell", path: "scripts/download_palantir_wef.ps1", privileged: false

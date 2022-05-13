@@ -5,11 +5,11 @@ Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Running fix-second-network.ps1..."
 # if network adapter contains Red Hat VirtIO (virtual ethernet card)
 if ( (Get-NetAdapter | Select-Object -First 1 | Select-Object -ExpandProperty InterfaceDescription).Contains('Red Hat VirtIO')) {
   Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Setting Network Configuration for LibVirt interface"
-  # get subnet from ip address (not too sure what the variable outcome is)
+  # get first 3 octets from ip address
   $subnet = $ip -replace "\.\d+$", ""
   # getting ipv4 address
   $name = (Get-NetIPAddress -AddressFamily IPv4 `
-     | Where-Object -FilterScript { ($_.IPAddress).StartsWith("$subnet") } ` # finds ip addr with subnet
+     | Where-Object -FilterScript { ($_.IPAddress).StartsWith("$subnet") } ` # finds ip addr with first 3 octets of ip addr
      ).InterfaceAlias # gets the name for the internet adapter/interface
   # if name variable is not empty
   if ($name) {
@@ -32,6 +32,7 @@ if ( (Get-NetAdapter | Select-Object -First 1 | Select-Object -ExpandProperty In
 } Else {
   Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) No VirtIO adapters, moving on..."
 }
+
 # if there is no vmware tools
 if (! (Test-Path 'C:\Program Files\VMware\VMware Tools') ) {
   Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) VMware Tools not found, no need to continue. Exiting."
@@ -43,11 +44,11 @@ Write-Host "$('[{0:HH:mm}]' -f (Get-Date))"
 Write-Host "Setting IP address and DNS information for the Ethernet1 interface"
 Write-Host "If this step times out, it's because vagrant is connecting to the VM on the wrong interface"
 Write-Host "See https://github.com/clong/DetectionLab/issues/114 for more information"
-# get subnet from ip address
+# get first 3 octets from ip address
 $subnet = $ip -replace "\.\d+$", ""
 # getting ipv4 address
 $name = (Get-NetIPAddress -AddressFamily IPv4 `
-   | Where-Object -FilterScript { ($_.IPAddress).StartsWith($subnet) } ` # finds ip addr with subnet
+   | Where-Object -FilterScript { ($_.IPAddress).StartsWith($subnet) } ` # finds ip addr with first 3 octets of ip addr
    ).InterfaceAlias # gets the name for internet adapter/interface
   #  if there is no name for the internet adapter/interface
    if (!$name) {
