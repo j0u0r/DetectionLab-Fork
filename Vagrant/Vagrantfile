@@ -77,17 +77,36 @@ config.vm.define "dc" do |cfg|
     cfg.winrm.retry_limit = 20
     # ip info
     cfg.vm.network :private_network, ip: "192.168.56.102", gateway: "192.168.56.1", dns: "8.8.8.8"
+
     # powershell scripts that will run in the new vm (will identify what is important as more is annotated)--------------------------------------------------------------------------
     # important ; fix wifi (not so sure why), make ip static
     cfg.vm.provision "shell", path: "scripts/fix-second-network.ps1", privileged: true, args: "-ip 192.168.56.102 -dns 8.8.8.8 -gateway 192.168.56.1" 
-    # important x3 ; sets time to UTC, resets windows trial expiry, sets background, create/joins domain, sets auto-login
+
+    # IMPORTANT ; sets time to UTC, resets windows trial expiry, sets background, create/joins domain (external scripts) >lower password requirements (create)
+    # >disables windows defender(create,join (for wef only...)) >set dc admin password(create) >disable windows update (join), sets auto-login
     cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
-    # restarts vm in case provision.ps1 did not run successfully
+    # meaning windows 10 does still have windows defender enabled
+
+    # restarts vm in case provision.ps1 did not run successfully and for domain to take effect
     cfg.vm.provision "reload"
+
+    # IMPORTANT ; sets time to UTC, resets windows trial expiry, sets background, create/joins domain (external scripts) >lower password requirements (create)
+    # >disables windows defender(create,join (for wef only...)) >set dc admin password(create) >disable windows update (join), sets auto-login
     cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
+    # meaning windows 10 does still have windows defender enabled
+
+    # NOT IMPORTANT (download palantir for event forwarding)
     cfg.vm.provision "shell", path: "scripts/download_palantir_wef.ps1", privileged: false
+
+    # USEFUL; installs chocolatey, custom windows 7 start menu on windows 10, process hacker, google chrome
     cfg.vm.provision "shell", path: "scripts/install-utilities.ps1", privileged: false
+
+    # MAYBE USEFUL? installs red team tools: mimikatz, powerspoilt, badblood, invoke-atomicredteam, purplesharp
+    # AND tries to disable windows defender again on BOTH win10 and wef (also uses invoke-commandas.ps1)
+    # apparently a GPO disables windows defender for servers and workstations but for now it does not? because the script comes later??
     cfg.vm.provision "shell", path: "scripts/install-redteam.ps1", privileged: false
+
+
     cfg.vm.provision "shell", path: "scripts/install-choco-extras.ps1", privileged: false
     cfg.vm.provision "shell", path: "scripts/install-osquery.ps1", privileged: false
     cfg.vm.provision "shell", path: "scripts/install-sysinternals.ps1", privileged: false
@@ -104,13 +123,16 @@ config.vm.define "dc" do |cfg|
     cfg.vm.provision "shell", inline: "Set-SmbServerConfiguration -AuditSmb1Access $true -Force", privileged: false
     cfg.vm.provision "shell", inline: "Write-Host 'DC Provisioning Complete!'", privileged: false
     # -----------------------------------------------------------------------------------------------------------------------------------------------------
+    # vmware-----------------------------------------------------
     cfg.vm.provider "vmware_desktop" do |v, override|
       v.vmx["displayname"] = "dc.windomain.local"
       v.memory = 3072
       v.cpus = 2
       v.gui = true
     end
+    # ------------------------------------------------------------
 
+    # not important--------------------------------------------------------------------------------------------
     cfg.vm.provider "virtualbox" do |vb, override|
       vb.gui = true
       vb.name = "dc.windomain.local"
@@ -137,7 +159,9 @@ config.vm.define "dc" do |cfg|
       override.vm.synced_folder '.', '/', type: 'winrm' 
     end
   end
+# -----------------------------------------------------------------------------------------------------------
 
+# Windows Event Forwarder (NOT IMPORTANT)------------------------------------------------------------------------------------------------------------------------------
   config.vm.define "wef" do |cfg|
     cfg.vm.box = "detectionlab/win2016"
     cfg.vm.hostname = "wef"
@@ -200,6 +224,7 @@ config.vm.define "dc" do |cfg|
       override.vm.synced_folder '.', '/', type: 'winrm' 
     end
   end
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   config.vm.define "win10" do |cfg|
     cfg.vm.box = "detectionlab/win10"
