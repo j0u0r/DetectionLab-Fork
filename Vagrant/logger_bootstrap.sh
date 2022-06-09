@@ -1,4 +1,5 @@
 #! /usr/bin/env bash
+# shellcheck disable=SC1091,SC2129
 
 # This is the script that is used to provision the logger host
 
@@ -8,9 +9,13 @@ if ! curl -s 169.254.169.254 --connect-timeout 2 >/dev/null; then
   netplan apply
 fi
 
-if grep '127.0.0.53' /etc/resolv.conf; then
-  sed -i 's/nameserver 127.0.0.53/nameserver 8.8.8.8/g' /etc/resolv.conf && chattr +i /etc/resolv.conf
-fi
+# Kill systemd-resolvd, just use plain ol' /etc/resolv.conf
+systemctl disable systemd-resolved
+systemctl stop systemd-resolved
+rm /etc/resolv.conf
+echo 'nameserver 8.8.8.8' >> /etc/resolv.conf
+echo 'nameserver 8.8.4.4' >> /etc/resolv.conf
+echo 'nameserver 192.168.56.102' >> /etc/resolv.conf
 
 # Source variables from logger_variables.sh
 # shellcheck disable=SC1091
@@ -323,12 +328,15 @@ install_fleet_import_osquery_config() {
 
     fleetctl config set --address https://192.168.56.105:8412
     fleetctl config set --tls-skip-verify true
-    fleetctl setup --email admin@detectionlab.network --name admin --password 'admin123#' --org-name DetectionLab
-    fleetctl login --email admin@detectionlab.network --password 'admin123#'
+    fleetctl setup --email admin@detectionlab.network --name admin --password 'Fl33tpassword!' --org-name DetectionLab
+    fleetctl login --email admin@detectionlab.network --password 'Fl33tpassword!'
 
     # Set the enrollment secret to match what we deploy to Windows hosts
-    mysql -uroot --password=fleet -e 'use fleet; update enroll_secrets set secret = "enrollmentsecret";'
-    echo "Updated enrollment secret"
+    if mysql -uroot --password=fleet -e 'use fleet; INSERT INTO enroll_secrets(created_at, secret, team_id) VALUES ("2022-05-30 21:20:23", "enrollmentsecretenrollmentsecret", NULL);'; then
+      echo "Updated enrollment secret"
+    else
+      echo "Error adding the custom enrollment secret. This is going to cause problems with agent enrollment."
+    fi
 
     # Change the query invervals to reflect a lab environment
     # Every hour -> Every 3 minutes
@@ -341,7 +349,7 @@ install_fleet_import_osquery_config() {
     # Don't log osquery INFO messages
     # Fix snapshot event formatting
     fleetctl get config >/tmp/config.yaml
-    /usr/bin/yq eval -i '.spec.agent_options.config.options.enroll_secret = "enrollmentsecret"' /tmp/config.yaml
+    /usr/bin/yq eval -i '.spec.agent_options.config.options.enroll_secret = "enrollmentsecretenrollmentsecret"' /tmp/config.yaml
     /usr/bin/yq eval -i '.spec.agent_options.config.options.logger_snapshot_event_type = true' /tmp/config.yaml
     fleetctl apply -f /tmp/config.yaml
 
