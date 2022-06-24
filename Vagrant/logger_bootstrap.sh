@@ -32,10 +32,6 @@ export DEBIAN_FRONTEND=noninteractive
 echo "apt-fast apt-fast/maxdownloads string 10" | debconf-set-selections
 echo "apt-fast apt-fast/dlflag boolean true" | debconf-set-selections
 
-if ! grep 'mirrors.ubuntu.com/mirrors.txt' /etc/apt/sources.list; then
-  sed -i "2ideb mirror://mirrors.ubuntu.com/mirrors.txt focal main restricted universe multiverse\ndeb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates main restricted universe multiverse\ndeb mirror://mirrors.ubuntu.com/mirrors.txt focal-backports main restricted universe multiverse\ndeb mirror://mirrors.ubuntu.com/mirrors.txt focal-security main restricted universe multiverse" /etc/apt/sources.list
-fi
-
 apt_install_prerequisites() {
   echo "[$(date +%H:%M:%S)]: Adding apt repositories..."
   # Add repository for apt-fast
@@ -52,7 +48,7 @@ apt_install_prerequisites() {
   echo "[$(date +%H:%M:%S)]: Installing apt-fast..."
   apt-get -qq install -y apt-fast
   echo "[$(date +%H:%M:%S)]: Using apt-fast to install packages..."
-  apt-fast install -y jq whois build-essential git unzip htop yq mysql-server redis-server python3-pip libcairo2-dev libjpeg-turbo8-dev libpng-dev libtool-bin libossp-uuid-dev libavcodec-dev libavutil-dev libswscale-dev freerdp2-dev libpango1.0-dev libssh2-1-dev libvncserver-dev libtelnet-dev libssl-dev libvorbis-dev libwebp-dev tomcat9 tomcat9-admin tomcat9-user tomcat9-common
+  apt-fast install -y jq whois build-essential git unzip htop yq mysql-server redis-server python3-pip libcairo2-dev libjpeg-turbo8-dev libpng-dev libtool-bin libossp-uuid-dev libavcodec-dev libavutil-dev libswscale-dev freerdp2-dev libpango1.0-dev libssh2-1-dev libvncserver-dev libtelnet-dev libssl-dev libvorbis-dev libwebp-dev tomcat9 tomcat9-admin tomcat9-user tomcat9-common net-tools
 }
 
 modify_motd() {
@@ -266,6 +262,9 @@ display.page.home.dashboardId = /servicesNS/nobody/search/data/ui/views/logger_d
     /opt/splunk/bin/splunk restart
     /opt/splunk/bin/splunk enable boot-start
   fi
+  # Include Splunk and Zeek in the PATH
+  echo export PATH="$PATH:/opt/splunk/bin:/opt/zeek/bin" >>~/.bashrc
+  echo "export SPLUNK_HOME=/opt/splunk" >>~/.bashrc
 }
 
 download_palantir_osquery_config() {
@@ -341,10 +340,12 @@ install_fleet_import_osquery_config() {
     # Change the query invervals to reflect a lab environment
     # Every hour -> Every 3 minutes
     # Every 24 hours -> Every 15 minutes
-    sed -i 's/interval: 3600/interval: 180/g' osquery-configuration/Fleet/Endpoints/MacOS/osquery.yaml
-    sed -i 's/interval: 3600/interval: 180/g' osquery-configuration/Fleet/Endpoints/Windows/osquery.yaml
-    sed -i 's/interval: 28800/interval: 900/g' osquery-configuration/Fleet/Endpoints/MacOS/osquery.yaml
-    sed -i 's/interval: 28800/interval: 900/g' osquery-configuration/Fleet/Endpoints/Windows/osquery.yaml
+    sed -i 's/interval: 3600/interval: 300/g' osquery-configuration/Fleet/Endpoints/MacOS/osquery.yaml
+    sed -i 's/interval: 3600/interval: 300/g' osquery-configuration/Fleet/Endpoints/Windows/osquery.yaml
+    sed -i 's/interval: 28800/interval: 1800/g' osquery-configuration/Fleet/Endpoints/MacOS/osquery.yaml
+    sed -i 's/interval: 28800/interval: 1800/g' osquery-configuration/Fleet/Endpoints/Windows/osquery.yaml
+    sed -i 's/interval: 0/interval: 1800/g' osquery-configuration/Fleet/Endpoints/MacOS/osquery.yaml
+    sed -i 's/interval: 0/interval: 1800/g' osquery-configuration/Fleet/Endpoints/Windows/osquery.yaml
 
     # Don't log osquery INFO messages
     # Fix snapshot event formatting
@@ -364,8 +365,6 @@ install_fleet_import_osquery_config() {
     # Files must exist before splunk will add a monitor
     touch /var/log/fleet/osquery_result
     touch /var/log/fleet/osquery_status
-    /opt/splunk/bin/splunk add monitor "/var/log/fleet/osquery_result" -index osquery -sourcetype 'osquery:json' -auth 'admin:changeme' --accept-license --answer-yes --no-prompt
-    /opt/splunk/bin/splunk add monitor "/var/log/fleet/osquery_status" -index osquery-status -sourcetype 'osquery:status' -auth 'admin:changeme' --accept-license --answer-yes --no-prompt
   fi
 }
 
@@ -373,10 +372,10 @@ install_zeek() {
   echo "[$(date +%H:%M:%S)]: Installing Zeek..."
   # Environment variables
   NODECFG=/opt/zeek/etc/node.cfg
-  if ! grep 'zeek' /etc/apt/sources.list.d/security:zeek.list > /dev/null; then
+  if ! grep 'zeek' /etc/apt/sources.list.d/security:zeek.list &> /dev/null; then
     sh -c "echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_20.04/ /' > /etc/apt/sources.list.d/security:zeek.list"
   fi
-  wget -nv https://download.opensuse.org/repositories/security:zeek/xUbuntu_20.04/Release.key -O /tmp/Release.key
+  wget -nv https://download.opensuse.org/repositories/security:zeek/xUbuntu_20.04/Release.key -O /tmp/Release.key 
   apt-key add - </tmp/Release.key &>/dev/null
   # Update APT repositories
   apt-get -qq -ym update
@@ -442,18 +441,6 @@ install_zeek() {
   systemctl enable zeek
   systemctl start zeek
 
-  # Configure the Splunk inputs
-  mkdir -p /opt/splunk/etc/apps/Splunk_TA_bro/local && touch /opt/splunk/etc/apps/Splunk_TA_bro/local/inputs.conf
-  crudini --set /opt/splunk/etc/apps/Splunk_TA_bro/local/inputs.conf monitor:///opt/zeek/spool/manager index zeek
-  crudini --set /opt/splunk/etc/apps/Splunk_TA_bro/local/inputs.conf monitor:///opt/zeek/spool/manager sourcetype zeek:json
-  crudini --set /opt/splunk/etc/apps/Splunk_TA_bro/local/inputs.conf monitor:///opt/zeek/spool/manager whitelist '.*\.log$'
-  crudini --set /opt/splunk/etc/apps/Splunk_TA_bro/local/inputs.conf monitor:///opt/zeek/spool/manager blacklist '.*(communication|stderr)\.log$'
-  crudini --set /opt/splunk/etc/apps/Splunk_TA_bro/local/inputs.conf monitor:///opt/zeek/spool/manager disabled 0
-
-  # Ensure permissions are correct and restart splunk
-  chown -R splunk:splunk /opt/splunk/etc/apps/Splunk_TA_bro
-  /opt/splunk/bin/splunk restart
-
   # Verify that Zeek is running
   if ! pgrep -f zeek >/dev/null; then
     echo "Zeek attempted to start but is not running. Exiting"
@@ -515,14 +502,6 @@ install_suricata() {
   echo re:protocol-command-decode >>/etc/suricata/disable.conf
   # enable et-open and attackdetection sources
   suricata-update enable-source et/open
-  suricata-update enable-source ptresearch/attackdetection
-
-  # Configure the Splunk inputs
-  crudini --set /opt/splunk/etc/apps/search/local/inputs.conf monitor:///var/log/suricata index suricata
-  crudini --set /opt/splunk/etc/apps/search/local/inputs.conf monitor:///var/log/suricata sourcetype suricata:json
-  crudini --set /opt/splunk/etc/apps/search/local/inputs.conf monitor:///var/log/suricata whitelist 'eve.json'
-  crudini --set /opt/splunk/etc/apps/search/local/inputs.conf monitor:///var/log/suricata disabled 0
-  crudini --set /opt/splunk/etc/apps/search/local/props.conf suricata:json TRUNCATE 0
 
   # Update suricata and restart
   suricata-update
@@ -606,14 +585,12 @@ install_guacamole() {
 }
 
 postinstall_tasks() {
-  # Include Splunk and Zeek in the PATH
-  echo export PATH="$PATH:/opt/splunk/bin:/opt/zeek/bin" >>~/.bashrc
-  echo "export SPLUNK_HOME=/opt/splunk" >>~/.bashrc
   # Ping DetectionLab server for usage statistics
   curl -s -A "DetectionLab-logger" "https:/ping.detectionlab.network/logger" || echo "Unable to connect to ping.detectionlab.network"
 }
 
 configure_splunk_inputs() {
+  echo "[$(date +%H:%M:%S)]: Configuring Splunk Inputs..."
   # Suricata
   crudini --set /opt/splunk/etc/apps/search/local/inputs.conf monitor:///var/log/suricata index suricata
   crudini --set /opt/splunk/etc/apps/search/local/inputs.conf monitor:///var/log/suricata sourcetype suricata:json
@@ -650,6 +627,7 @@ main() {
   install_suricata
   install_zeek
   install_guacamole
+  configure_splunk_inputs
   postinstall_tasks
 }
 
