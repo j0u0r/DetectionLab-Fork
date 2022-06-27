@@ -56,11 +56,11 @@ If ($days_left -as [int] -lt 30) {
   } Catch { # ERROR
     Try { # try again
       cscript c:\windows\system32\slmgr.vbs /rearm
-    } Catch {
+    } Catch { # give up if another error
       Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Something went wrong trying to re-arm the image..."
     }
   }
 } 
-Else {
+Else { # not expiring soon
   Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) $days_left days left until expiration, no need to rearm."
 }

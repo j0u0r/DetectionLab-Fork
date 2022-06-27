@@ -1,28 +1,30 @@
 Vagrant.configure("2") do |config|
 
+  # not important cuz no need logging ------------------------------------------------------------------------------------------------------------------------------------
   config.vm.define "logger" do |cfg|
-    # vm version
+    # ~ vm version
     cfg.vm.box = "bento/ubuntu-20.04"
-    # name of vm
+    # ~ name of vm
     cfg.vm.hostname = "logger"
-    # script for linux (logger; not important so skipped)
+    # ~ script for linux (logger; not important so skipped)
     cfg.vm.provision :shell, path: "logger_bootstrap.sh"
-    # ip info
+    # ~ ip info
     cfg.vm.network :private_network, ip: "192.168.56.105", gateway: "192.168.56.1", dns: "8.8.8.8"
 
-    # for vmware
+    # ~ for vmware
     cfg.vm.provider "vmware_desktop" do |v, override|
-      # display name in vmware
+      # ~ display name in vmware
       v.vmx["displayname"] = "logger"
-      # hardware version
+      # ~ hardware version
       v.vmx["virtualhw.version"] = 16
-      # ram
+      # ~ ram
       v.memory = 4096
-      # processors
+      # ~ processors
       v.cpus = 2
-      # GUI
+      # ~ GUI
       v.gui = true
     end
+    # ! other vmware settings can be found below at win10.windomain.local
 
     # not important cuz not vmware-------------------------------------------------------------------------------------------------------------------------------------
     cfg.vm.provider "virtualbox" do |vb, override|
@@ -44,14 +46,14 @@ Vagrant.configure("2") do |config|
       lv.video_vram = 32768
       lv.memory = 4096
       lv.cpus = 2
-      # This is required for Vagrant to properly configure the network interfaces.
-      # See https://github.com/clong/DetectionLab/wiki/LibVirt-Support for more information
+      # ~ This is required for Vagrant to properly configure the network interfaces.
+      # ~ See https://github.com/clong/DetectionLab/wiki/LibVirt-Support for more information
       lv.management_network_name = "VagrantMgmt"
       lv.management_network_address = "192.168.123.0/24"
       lv.management_network_mode = "none"
       lv.cpu_mode = "host-passthrough"
-      # Which storage pool path to use. Default to /var/lib/libvirt/images or ~/.local/share/libvirt/images depending on if you are running a system or user QEMU/KVM session.
-      #libvirt.storage_pool_path = '/media/storage_nvme/system_session_vm_pool'
+      # ~ Which storage pool path to use. Default to /var/lib/libvirt/images or ~/.local/share/libvirt/images depending on if you are running a system or user QEMU/KVM session.
+      # ~libvirt.storage_pool_path = '/media/storage_nvme/system_session_vm_pool'
       lv.storage_pool_name = 'default'
       override.vm.box = "generic/ubuntu2004"
       override.vm.synced_folder './', '/vagrant', type: 'rsync' 
@@ -59,78 +61,106 @@ Vagrant.configure("2") do |config|
   end
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# domain controller 
+# # domain controller 
 config.vm.define "dc" do |cfg|
     cfg.vm.box = "detectionlab/win2016"
     cfg.vm.hostname = "dc"
-    # timeout
+    # ~ timeout
     cfg.vm.boot_timeout = 600
-    # transport in plaintext
+    # ~ transport in plaintext
     cfg.winrm.transport = :plaintext
-    # use windows remote management
+    # ~ use windows remote management
     cfg.vm.communicator = "winrm"
-    # use together with plantext, basic authentication
+    # ~ use together with plantext, basic authentication
     cfg.winrm.basic_auth_only = true
-    # timeout for windrm to start
+    # ~ timeout for windrm to start
     cfg.winrm.timeout = 300
-    # retry limit
+    # ~ retry limit
     cfg.winrm.retry_limit = 20
-    # ip info
+    # ~ ip info
     cfg.vm.network :private_network, ip: "192.168.56.102", gateway: "192.168.56.1", dns: "8.8.8.8"
 
-    # powershell scripts that will run in the new vm (will identify what is important as more is annotated)--------------------------------------------------------------------------
-    # important ; fix wifi (not so sure why), make ip static
+    # # powershell scripts that will run in the new vm (will identify what is important as more is annotated)--------------------------------------------------------------------------
+    # ~ IMPORTANT ; fix second wifi, install vmware tools, make second wifi ip static with admin privilege
     cfg.vm.provision "shell", path: "scripts/fix-second-network.ps1", privileged: true, args: "-ip 192.168.56.102 -dns 8.8.8.8 -gateway 192.168.56.1" 
 
-    # IMPORTANT ; sets time to UTC, resets windows trial expiry, sets background, create/joins domain (external scripts) >lower password requirements (create)
-    # >disables windows defender(create,join (for wef only...)) >set dc admin password(create) >disable windows update (join), sets auto-login
+    # ~ IMPORTANT ; sets time to UTC, resets windows trial expiry (external script), sets background (bginfo; external script), 
+    # ~ create/joins domain (external scripts) >lower password requirements (create)
+    # ~ >disables windows defender(create,join (for wef only...)) >set dc admin password(create) >disable windows update (join), sets auto-login
     cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
-    # meaning windows 10 does still have windows defender enabled
+    # ~ meaning windows 10 does still have windows defender enabled
 
-    # restarts vm in case provision.ps1 did not run successfully and for domain to take effect
+    # ~ restarts vm in case provision.ps1 did not run successfully and for domain to take effect
     cfg.vm.provision "reload"
 
-    # IMPORTANT ; sets time to UTC, resets windows trial expiry, sets background, create/joins domain (external scripts) >lower password requirements (create)
-    # >disables windows defender(create,join (for wef only...)) >set dc admin password(create) >disable windows update (join), sets auto-login
+    # ~ IMPORTANT ; sets time to UTC, resets windows trial expiry (external script), sets background (bginfo; external script), 
+    # ~ create/joins domain (external scripts) >lower password requirements (create)
+    # ~ >disables windows defender(create,join (for wef only...)) >set dc admin password(create) >disable windows update (join), sets auto-login
     cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
-    # meaning windows 10 does still have windows defender enabled
+    # ~ meaning windows 10 does still have windows defender enabled
 
-    # NOT IMPORTANT (download palantir for event forwarding)
+    # NOT IMPORTANT ; download palantir for event forwarding
     cfg.vm.provision "shell", path: "scripts/download_palantir_wef.ps1", privileged: false
 
-    # USEFUL; installs chocolatey, custom windows 7 start menu on windows 10, process hacker, google chrome
+    # ~ USEFUL; installs chocolatey, custom windows 7 start menu on windows 10, process hacker, google chrome
     cfg.vm.provision "shell", path: "scripts/install-utilities.ps1", privileged: false
 
-    # MAYBE USEFUL? installs red team tools: mimikatz, powerspoilt, badblood, invoke-atomicredteam, purplesharp
-    # AND tries to disable windows defender again on BOTH win10 and wef (also uses invoke-commandas.ps1)
-    # apparently a GPO disables windows defender for servers and workstations but for now it does not? because the script comes later??
+    # $ MAYBE USEFUL? installs red team tools: mimikatz, powerspoilt, badblood, invoke-atomicredteam, purplesharp
+    # $ AND tries to disable windows defender again on BOTH win10 and wef (also uses invoke-commandas.ps1)
+    # $ apparently a GPO disables windows defender for servers and workstations but for now it does not? because the script comes later??
     cfg.vm.provision "shell", path: "scripts/install-redteam.ps1", privileged: false
 
-
+    # $ MAYBE USEFUL? installs wireshark and winpcap
     cfg.vm.provision "shell", path: "scripts/install-choco-extras.ps1", privileged: false
+
+    # NOT IMPORTANT ; installs osquery (allows use of sql commands for system queries) and sets it up for logger
     cfg.vm.provision "shell", path: "scripts/install-osquery.ps1", privileged: false
+
+    # $ MAYBE USEFUL? installs procmon, tcpview, autoruns, process explorer, psexec, sdelete, system monitor (sysinternals tools)
     cfg.vm.provision "shell", path: "scripts/install-sysinternals.ps1", privileged: false
+
+    # NOT IMPORTANT ; installs velociraptor (forensics tool)
     cfg.vm.provision "shell", path: "scripts/install-velociraptor.ps1", privileged: false
+
+    # ~ IMPORTANT ; creates OUs
     cfg.vm.provision "shell", path: "scripts/configure-ou.ps1", privileged: false
+
+    # # IMPORTANT; setting up GPOs -> basically the same process --------------------------------------------------
+    # NOT IMPORTANT (for event forwarder)
     cfg.vm.provision "shell", path: "scripts/configure-wef-gpo.ps1", privileged: false
+    # NOT IMPORTANT (powershell logging; this is also GPO although the name is diff)
     cfg.vm.provision "shell", path: "scripts/configure-powershelllogging.ps1", privileged: false
+    # NOT IMPORTANT (for auditing policies)
     cfg.vm.provision "shell", path: "scripts/configure-AuditingPolicyGPOs.ps1", privileged: false
+    # NOT IMPORTANT (for remote desktop protocol; slight code difference in importing GPO)
     cfg.vm.provision "shell", path: "scripts/configure-rdp-user-gpo.ps1", privileged: false
+    # .. NOT NEEDED (disable windows defender)
     cfg.vm.provision "shell", path: "scripts/configure-disable-windows-defender-gpo.ps1", privileged: false
+    # $ MAYBE NEEDED? (customises taskbar layout; slight code difference copying files) -> a bit relevant so i'll annotate this file
     cfg.vm.provision "shell", path: "scripts/configure-taskbar-layout-gpo.ps1", privileged: false
+    # # -----------------------------------------------------------------------------------------------------------
+
+    # NOT IMPORTANT ; installs autorunstowineventlog for logging
     cfg.vm.provision "shell", path: "scripts/install-autorunstowineventlog.ps1", privileged: false
+
+    # NOT IMPORTANT ; uses wevtutil to clear logs starting with '$_' (windows event log tools utility)
     cfg.vm.provision "shell", inline: 'wevtutil el | Select-String -notmatch "Microsoft-Windows-LiveId" | Foreach-Object {wevtutil cl "$_"}', privileged: false
+
+    # NOT IMPORTANT ; force sets smb server to enable logging for whoever accesses smb
     cfg.vm.provision "shell", inline: "Set-SmbServerConfiguration -AuditSmb1Access $true -Force", privileged: false
+
+    # ~ prints out to announce that the DC provisioning has completed 
     cfg.vm.provision "shell", inline: "Write-Host 'DC Provisioning Complete!'", privileged: false
-    # -----------------------------------------------------------------------------------------------------------------------------------------------------
-    # vmware-----------------------------------------------------
+    # # -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+    # # vmware-----------------------------------------------------
     cfg.vm.provider "vmware_desktop" do |v, override|
       v.vmx["displayname"] = "dc.windomain.local"
       v.memory = 3072
       v.cpus = 2
       v.gui = true
     end
-    # ------------------------------------------------------------
+    # # ------------------------------------------------------------
 
     # not important--------------------------------------------------------------------------------------------
     cfg.vm.provider "virtualbox" do |vb, override|
@@ -154,12 +184,12 @@ config.vm.define "dc" do |cfg|
       lv.video_vram = 32768
       lv.memory = 3072
       lv.cpus = 2
-      # This is NOT the right semantic for Vagrant synced folder. It's a workaround:
-      # https://github.com/Cimpress-MCP/vagrant-winrm-syncedfolders/issues/11
+      # ~ This is NOT the right semantic for Vagrant synced folder. It's a workaround:
+      # ~ https://github.com/Cimpress-MCP/vagrant-winrm-syncedfolders/issues/11
       override.vm.synced_folder '.', '/', type: 'winrm' 
     end
   end
-# -----------------------------------------------------------------------------------------------------------
+#  -----------------------------------------------------------------------------------------------------------
 
 # Windows Event Forwarder (NOT IMPORTANT)------------------------------------------------------------------------------------------------------------------------------
   config.vm.define "wef" do |cfg|
@@ -224,7 +254,7 @@ config.vm.define "dc" do |cfg|
       override.vm.synced_folder '.', '/', type: 'winrm' 
     end
   end
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------
+#  -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   config.vm.define "win10" do |cfg|
     cfg.vm.box = "detectionlab/win10"
@@ -236,31 +266,55 @@ config.vm.define "dc" do |cfg|
     cfg.winrm.retry_limit = 20
     cfg.vm.network :private_network, ip: "192.168.56.104", gateway: "192.168.56.1", dns: "192.168.56.102"
 
+    # look above
     cfg.vm.provision "shell", path: "scripts/fix-second-network.ps1", privileged: false, args: "-ip 192.168.56.104 -dns 8.8.8.8 -gateway 192.168.56.1" 
-    cfg.vm.provision "shell", path: "scripts/MakeWindows10GreatAgain.ps1", privileged: false
-    cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
-    cfg.vm.provision "reload"
-    cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
-    cfg.vm.provision "shell", path: "scripts/download_palantir_wef.ps1", privileged: false
-    cfg.vm.provision "shell", inline: 'wevtutil el | Select-String -notmatch "Microsoft-Windows-LiveId" | Foreach-Object {wevtutil cl "$_"}', privileged: false
-    cfg.vm.provision "shell", path: "scripts/install-utilities.ps1", privileged: false
-    cfg.vm.provision "shell", path: "scripts/install-redteam.ps1", privileged: false
-    cfg.vm.provision "shell", path: "scripts/install-choco-extras.ps1", privileged: false
-    cfg.vm.provision "shell", path: "scripts/install-osquery.ps1", privileged: false
-    cfg.vm.provision "shell", path: "scripts/install-sysinternals.ps1", privileged: false
-    cfg.vm.provision "shell", path: "scripts/install-velociraptor.ps1", privileged: false
-    cfg.vm.provision "shell", path: "scripts/install-autorunstowineventlog.ps1", privileged: false
-    cfg.vm.provision "shell", inline: "Write-Host 'Win10 Provisioning Complete!'", privileged: false
 
+    # @ QUITE USEFUL ; disables auto screen turnoff, cortana, notification center, microsoft.com accounts and microsoft people icon on taskbar, 
+    # @ no reboot when users are logged in, show file extensions, set explorer to default to 'this pc', show hidden files but not OS files, 
+    # @ show 'this pc' on desktop, enable dev mode, remove onedrive, edge shortcut and installs shutup10 (antispy tool)
+    cfg.vm.provision "shell", path: "scripts/MakeWindows10GreatAgain.ps1", privileged: false
+    
+    # look above
+    cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
+    # reload
+    cfg.vm.provision "reload"
+    # look above
+    cfg.vm.provision "shell", path: "scripts/provision.ps1", privileged: false
+    # look above
+    cfg.vm.provision "shell", path: "scripts/download_palantir_wef.ps1", privileged: false
+    # look above
+    cfg.vm.provision "shell", inline: 'wevtutil el | Select-String -notmatch "Microsoft-Windows-LiveId" | Foreach-Object {wevtutil cl "$_"}', privileged: false
+    # look above
+    cfg.vm.provision "shell", path: "scripts/install-utilities.ps1", privileged: false
+    # look above
+    cfg.vm.provision "shell", path: "scripts/install-redteam.ps1", privileged: false
+    # look above
+    cfg.vm.provision "shell", path: "scripts/install-choco-extras.ps1", privileged: false
+    # look above
+    cfg.vm.provision "shell", path: "scripts/install-osquery.ps1", privileged: false
+    # look above
+    cfg.vm.provision "shell", path: "scripts/install-sysinternals.ps1", privileged: false
+    # look above
+    cfg.vm.provision "shell", path: "scripts/install-velociraptor.ps1", privileged: false
+    # look above
+    cfg.vm.provision "shell", path: "scripts/install-autorunstowineventlog.ps1", privileged: false
+    # completed
+    cfg.vm.provision "shell", inline: "Write-Host 'Win10 Provisioning Complete!'", privileged: false
+    
+    # # vmware -----------------------------------------------
     cfg.vm.provider "vmware_desktop" do |v, override|
       v.vmx["displayname"] = "win10.windomain.local"
+      # ~ disabled full screen at power on
       v.vmx["gui.fullscreenatpoweron"] = "FALSE"
+      # ~ windowed mode at power on
       v.vmx["gui.viewModeAtPowerOn"] = "windowed"
       v.memory = 3072
       v.cpus = 2
       v.gui = true
     end
-
+    # # ------------------------------------------------------
+    
+    # others (not needed)
     cfg.vm.provider "virtualbox" do |vb, override|
       vb.gui = true
       vb.name = "win10.windomain.local"

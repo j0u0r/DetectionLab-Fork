@@ -11,6 +11,7 @@ if ($onedrive) {
 }
 c:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
 
+# disable auto screen turnoff
 Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Disabling automatic screen turnoff in order to prevent screen locking..."
 powercfg -change -monitor-timeout-ac 0
 powercfg -change -standby-timeout-ac 0

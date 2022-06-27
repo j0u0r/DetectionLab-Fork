@@ -24,7 +24,7 @@ If (!(Test-Path $ProfilePath)) {
   New-Item -Path $ProfilePath | Out-Null
   # if there is no result for getting the file contents and matching "SilentlyContinue" in every variable 
   If (!(Get-Content $Profilepath| % { $_ -match "SilentlyContinue" } )) {
-    # add SilentlyContinue to ProgressPreference, which disables errors and continue
+    # add SilentlyContinue to ProgressPreference, which disables errors/warnings and continue
     Add-Content -Path $ProfilePath -Value "$ProgressPreference = 'SilentlyContinue'"
   }
 }
