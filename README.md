@@ -5,7 +5,9 @@
 - I have annotated Detectionlab, which is built using Vagrant, to learn and familiarise myself with Vagrant.
   - Link to forked repository: https://github.com/j0u0r/DetectionLab-Fork
 - I have created an AD environment using Vagrant that will be used as the victim. Instructions, more information and troubleshooting is provided.
-  - Linked to repository: https://github.com/j0u0r/vagrant-victim
+  - Linked to repository: https://github.com/j0u0r/vagrant-victim  
+  
+****THIS IS NOT THE WHOLE PROJECT! ONLY MY PART :(***
 ## Resources used
 - Vagrant v2.2.19
   > - Website: https://www.vagrantup.com/
