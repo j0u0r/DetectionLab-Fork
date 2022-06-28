@@ -9,7 +9,7 @@
   > - ***configure-ou.ps1*** (creates Organizational Units)
   > - ***All GPO scripts*** (creates GPO; but not relevant to the FYP project)
   
-- Useful scripts (Vagrant/scripts):
+- Useful scripts (/Vagrant/scripts):
   > - ***install-bginfo.ps1*** (customises desktop that provides useful info like IP and domain)
   > - ***install-utilities.ps1*** (useful utilities like Google Chrome, Chocolatey)
   > - ***install-redteam.ps1*** (install red team tools; uses Invoke-CommandAs.ps1 but not sure what purpose)
