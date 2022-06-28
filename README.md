@@ -2,7 +2,7 @@
 - Main file: ***/Vagrant/Vagrantfile*** (coded in ruby)
 - Important scripts (/Vagrant/scripts):
   > - ***fix-second-network.ps1*** (configures second network for domain)
-  > - ***provision.ps1** (main file for configuring vm)
+  > - ***provision.ps1*** (main file for configuring vm)
   > - ***fix-windows-expiration.ps1*** (renews Windows expiration date)
   > - ***create-domain.ps1*** (creates domain)
   > - ***join-domain.ps1*** (joins domain)
