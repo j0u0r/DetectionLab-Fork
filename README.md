@@ -1,4 +1,5 @@
 # Annotated Detectionlab
+> Version last updated 24 June 2022
 - Main file: ***/Vagrant/Vagrantfile*** (coded in ruby)
 - Important scripts (***/Vagrant/scripts***):
   > - ***fix-second-network.ps1*** (configures second network for domain)
