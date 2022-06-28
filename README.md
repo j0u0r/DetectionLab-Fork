@@ -1,28 +1,29 @@
 # Annotated Detectionlab
-- Main file: /Vagrant/Vagrantfile
+- Main file: ***/Vagrant/Vagrantfile*** (coded in ruby)
 - Important scripts (/Vagrant/scripts):
-  > - fix-second-network.ps1 (configures second network for domain)
-  > - provision.ps1 (main file for configuring vm)
-  > - fix-windows-expiration.ps1 (renews Windows expiration date)
-  > - create-domain.ps1 (creates domain)
-  > - join-domain.ps1 (joins domain)
-  > - configure-ou.ps1 (creates Organizational Units)
-  > - All GPO scripts (creates GPO; but not relevant to the FYP project)
+  > - ***fix-second-network.ps1*** (configures second network for domain)
+  > - ***provision.ps1** (main file for configuring vm)
+  > - ***fix-windows-expiration.ps1*** (renews Windows expiration date)
+  > - ***create-domain.ps1*** (creates domain)
+  > - ***join-domain.ps1*** (joins domain)
+  > - ***configure-ou.ps1*** (creates Organizational Units)
+  > - ***All GPO scripts*** (creates GPO; but not relevant to the FYP project)
   
 - Useful scripts (Vagrant/scripts):
-  > - install-bginfo.ps1 (customises desktop that provides useful info like IP and domain)
-  > - install-utilities.ps1 (useful utilities like Google Chrome, Chocolatey)
-  > - install-redteam.ps1 (install red team tools; uses Invoke-CommandAs.ps1 but not sure what purpose)
-  > - install-choco-extras.ps1 (installs Wireshark, Winpcap; requires Chocolatey)
-  > - install-sysinternals.ps1 (installs ProcMon, Autoruns, Process Explorer, etc.)
-  > - configure-taskbar-layout-gpo.ps1 (creates GPO to customise taskbar layout)
+  > - ***install-bginfo.ps1*** (customises desktop that provides useful info like IP and domain)
+  > - ***install-utilities.ps1*** (useful utilities like Google Chrome, Chocolatey)
+  > - ***install-redteam.ps1*** (install red team tools; uses Invoke-CommandAs.ps1 but not sure what purpose)
+  > - ***install-choco-extras.ps1*** (installs Wireshark, Winpcap; requires Chocolatey)
+  > - ***install-sysinternals.ps1*** (installs ProcMon, Autoruns, Process Explorer, etc.)
+  > - ***configure-taskbar-layout-gpo.ps1*** (creates GPO to customise taskbar layout)
+  > - ***MakeWindows10GreatAgain.ps1*** (disables auto screen turnoff, cortana, remove Onedrive, and other useful stuff)
   
 - Important resources:
-  > - /Vagrant/resources/GPO (folder containing all GPO object exports to be used to create GPOs)
+  > - ***/Vagrant/resources/GPO*** (folder containing all GPO object exports to be used to create GPOs)
   
 - Useful resources:
-  > - /Vagrant/resources/windows/background.bmp (wallpaper image)
-  > - /Vagrant/scripts/bginfo.bgi (bginfo configuration file)
+  > - ***/Vagrant/resources/windows/background.bmp*** (wallpaper image)
+  > - ***/Vagrant/scripts/bginfo.bgi*** (bginfo configuration file)
   
 # Adapt Imitate cloner (WIP)
 > - Adapt Imitate is part of ADAPT(Active Directory Automation PlaTform), a Final Year Project that me and my group is working on. This project focuses on automated processes, so everything will be automated and won't be so troublesome for users.
