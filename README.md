@@ -34,7 +34,7 @@
   - Link to forked repository: https://github.com/j0u0r/DetectionLab-Fork
 - I have created an AD environment using Vagrant that will be used as the victim. Instructions, more information and troubleshooting is provided in the repository.
   - Link to repository: https://github.com/j0u0r/vagrant-victim  
-- I have created a program that clones an AD environment using information provided in a csv file. Instructions, more information and troubleshooting is provided in the repository.  
+- I have created a program that uses Vagrant to clone an AD environment via information provided in a csv file. Instructions, more information and troubleshooting is provided in the repository.  
   - Link to repository: https://github.com/j0u0r/ADAPT-Imitate-Cloner
   
 ****THIS IS NOT THE WHOLE PROJECT! ONLY MY PART :(***
