@@ -33,7 +33,9 @@
 - I have annotated Detectionlab, which is built using Vagrant, to learn and familiarise myself with Vagrant.
   - Link to forked repository: https://github.com/j0u0r/DetectionLab-Fork
 - I have created an AD environment using Vagrant that will be used as the victim. Instructions, more information and troubleshooting is provided in the repository.
-  - Linked to repository: https://github.com/j0u0r/vagrant-victim  
+  - Link to repository: https://github.com/j0u0r/vagrant-victim  
+- I have created a program that clones an AD environment using information provided in a csv file. Instructions, more information and troubleshooting is provided in the repository.  
+  - Link to repository: https://github.com/j0u0r/ADAPT-Imitate-Cloner
   
 ****THIS IS NOT THE WHOLE PROJECT! ONLY MY PART :(***
 ## Resources used
@@ -41,11 +43,14 @@
   > - Website: https://www.vagrantup.com/
   > - Downloads:
   >    - https://www.vagrantup.com/downloads (main; recommended download)
-  >    - https://www.vagrantup.com/docs/providers/vmware/vagrant-vmware-utility (vmware utility v1.0.21)
+  >    - https://www.vagrantup.com/vmware/downloads (vmware utility v1.0.21)
   > - Github: https://github.com/hashicorp/vagrant.git
-- Ruby (to develop Vagrant; not so sure whether it's needed but i installed it anyway)
+- Ruby v3.1.2 (to develop Vagrant; not so sure whether it's needed but i installed it anyway)
   >  - Website: https://www.ruby-lang.org/en/
   >  - Download: https://www.ruby-lang.org/en/downloads/
 - Detectionlab (last updated 24 June 2022)
   >  - Website: https://detectionlab.network/
   >  - Download/Github: https://github.com/clong/DetectionLab
+- Python v3.10.4
+  > - Website: https://www.python.org/
+  > - Download: https://www.python.org/downloads/
