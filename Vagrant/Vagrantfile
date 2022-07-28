@@ -134,7 +134,7 @@ config.vm.define "dc" do |cfg|
     cfg.vm.provision "shell", path: "scripts/configure-AuditingPolicyGPOs.ps1", privileged: false
     # NOT IMPORTANT (for remote desktop protocol; slight code difference in importing GPO)
     cfg.vm.provision "shell", path: "scripts/configure-rdp-user-gpo.ps1", privileged: false
-    # .. NOT NEEDED (disable windows defender)
+    # .. NOT NEEDED (disable windows defender) (edit: it is now needed :o)
     cfg.vm.provision "shell", path: "scripts/configure-disable-windows-defender-gpo.ps1", privileged: false
     # $ MAYBE NEEDED? (customises taskbar layout; slight code difference copying files) -> a bit relevant so i'll annotate this file
     cfg.vm.provision "shell", path: "scripts/configure-taskbar-layout-gpo.ps1", privileged: false
