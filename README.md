@@ -52,7 +52,7 @@
 - Detectionlab (last updated 24 June 2022)
   >  - Website: https://detectionlab.network/
   >  - Download/Github: https://github.com/clong/DetectionLab
-- Python v3.10.4
+- Python v3.10.5
   > - Website: https://www.python.org/
   > - Download: https://www.python.org/downloads/
 
